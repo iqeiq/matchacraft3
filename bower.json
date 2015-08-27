@@ -1,0 +1,15 @@
+{
+  "name": "matchacraft3",
+  "version": "0.0.1",
+  "homepage": "https://github.com/mokhachat/matchacraft3",
+  "authors": [
+    "mokhachat"
+  ],
+  "description": "matchacraft",
+  "dependencies": {
+    "lodash": "~3.10.1",
+    "stats.js": "*",
+    "three.js": "~0.71.0"
+  },
+  "license": "MIT"
+}
