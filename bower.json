@@ -7,6 +7,8 @@
   ],
   "description": "matchacraft",
   "dependencies": {
+    "bacon": "~0.7.71",
+    "jquery": "~2.1.4",
     "lodash": "~3.10.1",
     "stats.js": "*",
     "three.js": "~0.71.0"
