@@ -43,6 +43,9 @@ class Input
 class Main
   constructor: -> 
 
+    unless Detector.webgl
+      Detector.addGetWebGLMessage()
+
     @input = new Input
 
     @scene = new THREE.Scene
@@ -50,14 +53,17 @@ class Main
     @camera = new THREE.PerspectiveCamera 72, window.innerWidth / window.innerHeight, 1, 10000
     @camera.position.z = 1000
 
+    @controls = new THREE.PointerLockControls @camera
+    @scene.add @controls.getObject()
+
     @renderer = new THREE.WebGLRenderer
-      alpha: true
-      antialiasing: false
+        alpha: true
+        antialiasing: false
     @renderer.setSize window.innerWidth, window.innerHeight
     @renderer.setClearColor 0xa0d8ef, 1
-    #@renderer.autoClear = false
+    @renderer.autoClear = false
     @renderer.sortObjects = true
-    document.body.appendChild @renderer.domElement
+    $('#world').append @renderer.domElement
 
     geometry = new THREE.BoxGeometry 200, 200, 200
     material = new THREE.MeshBasicMaterial
@@ -71,33 +77,40 @@ class Main
     @stats.domElement.style.position = 'absolute'
     @stats.domElement.style.left = '0px'
     @stats.domElement.style.top = '0px'
-    document.body.appendChild @stats.domElement
+    $(document.body).append @stats.domElement
 
-    Bacon.fromEventTarget window, 'resize'
-    .onValue =>
+    $(window).resize =>
       width = window.innerWidth
       height = window.innerHeight
       @renderer.setSize width, height
       @camera.aspect = width / height
       @camera.updateProjectionMatrix()
 
+    $('#world').click =>
+      @controls.enabled = true
+      unless document.pointerLockElement
+        document.body.requestPointerLock()
+    
+    @input.on 'p', =>
+      @controls.enabled = false
+      if document.pointerLockElement
+        document.exitPointerLock()
+        
     console.log "ready! dirname: #{__dirname} filename: #{__filename}"
 
-    @input.on 'esc', ()->
-      console.log "etc"
-    
 
   animate: ->
     requestAnimationFrame => do @animate
 
     @stats.begin()
+    @renderer.clear()
     
-    @mesh.rotation.x += 0.01
-    @mesh.rotation.y += 0.02
+    ###if @controls.enabled
+      @mesh.rotation.x += 0.01
+      @mesh.rotation.y += 0.02###
 
     @renderer.render @scene, @camera
-
     @stats.end()
 
 
-do new Main().animate
+$ -> do new Main().animate

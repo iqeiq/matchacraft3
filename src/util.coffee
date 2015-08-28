@@ -7,3 +7,7 @@ module.exports.randRange = (min, max)->
   
 module.exports.randArray = (arr)->
   arr[Math.floor Math.random() * arr.length]
+
+module.exports.noise = do ->
+  perlin = new ImprovedNoise
+  (x, y, z)-> perlin.noise x, y, z
