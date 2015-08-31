@@ -32,8 +32,6 @@ class Input
 
     buttons = [THREE.MOUSE.LEFT, THREE.MOUSE.RIGHT]
     
-    allremove = (v)-> true
-  
     mouseEvent = (type)=>
       listener = {}
       buttons.forEach (e)-> listener[e] = []
@@ -42,7 +40,7 @@ class Input
         .onValue (e)-> listener[e.button].forEach (v)-> v e.clientX, e.clientY
       [ 
         (btn, cb)-> listener[btn]?.push cb,
-        (btn, cb = allremove)-> _.remove listener[btn], (v)-> v is cb
+        (btn, cb)-> _.remove listener[btn], (v)-> if cb? then v is cb else true
       ]
 
     [@onMouseDown, @offMouseDown] = mouseEvent 'mousedown'
@@ -63,9 +61,17 @@ class Input
           v.forEach (u)-> u e.clientX, e.clientY if active[k] 
       [
         (btn, cb)-> listener[btn]?.push cb,
-        (btn, cb = allremove)-> _.remove listener[btn], (v)-> v is cb 
+        (btn, cb)-> _.remove listener[btn], (v)-> if cb? then v is cb else true
       ]
-    
+
+    @offAll = =>
+      buttons.forEach (v)=>
+        @offMouseDown v
+        @offMouseUp v
+        @offMouseMove v
+      @offDoubleClick()
+      @off k for own k, v of @listener
+        
 
   on: (key, cb)->
     return @listener[key].push cb if @listener[key]

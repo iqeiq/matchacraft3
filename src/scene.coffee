@@ -1,47 +1,67 @@
 Input = require './input'
 
 class Scene
-  constructor: (@renderer)->
+  constructor: (@renderer, @transit)->
     @clock = new THREE.Clock
-
     @input = new Input document.body
-
     @scene = new THREE.Scene
+    @camera = new THREE.PerspectiveCamera 72, window.innerWidth / window.innerHeight, 1, 1000
     
-    @camera = new THREE.PerspectiveCamera 72, window.innerWidth / window.innerHeight, 1, 10000
-    @camera.position.z = 1000
+  update: ->
+    @renderer.render @scene, @camera
 
+class OrbitScene extends Scene
+  constructor: (@renderer, @transit)-> 
+    super @renderer, @transit
+    @camera.position.z = 100
     @controls = new THREE.OrbitControls @camera
+
+    geometry = new THREE.BoxGeometry 20, 20, 20
+    material = new THREE.MeshPhongMaterial
+        color: 0xff0000
+        wireframe: false
+    @mesh = new THREE.Mesh geometry, material
+    @scene.add @mesh
+
+    @light = new THREE.DirectionalLight 0xffffff, 1.0
+    @light.position.set(0.5, 0.7, 0.3).normalize()
+    @scene.add @light
+
+    @input.onMouseDown THREE.MOUSE.RIGHT, =>
+      console.log "transit PLScene"
+      @transit new PLScene @renderer, @transit
+
+  update: ->
+    @controls.update()
+    super()
     
-    geometry = new THREE.BoxGeometry 200, 200, 200
+
+class PLScene extends Scene
+  constructor: (@renderer, @transit)-> 
+    super @renderer, @transit
+    @camera.position.z = 100
+    @controls = new THREE.PointerLockControls @camera
+    @scene.add @controls.getObject()
+
+    geometry = new THREE.BoxGeometry 20, 20, 20
     material = new THREE.MeshBasicMaterial
         color: 0xff0000
         wireframe: true
     @mesh = new THREE.Mesh geometry, material
     @scene.add @mesh
 
-    @light = new THREE.PointLight 0xffffff
-    @light.position.set 0, 10, 0
-    @scene.add @light
-
-  update: ->
-    @controls.update()
-    @renderer.render @scene, @camera
-
-
-class Scene2
-  constructor: (@scene, @camera)->
-    #@controls = new THREE.PointerLockControls @camera
-    #@scene.add @controls.getObject()
-    ###$('#world').click =>
+    @input.onMouseDown THREE.MOUSE.LEFT, =>
+      console.log "poyo"
       @controls.enabled = true
       unless document.pointerLockElement
         document.body.requestPointerLock()
     
-    @input.on 'p', =>
+    @input.onDoubleClick =>
       @controls.enabled = false
       if document.pointerLockElement
-        document.exitPointerLock()###
+        document.exitPointerLock()
+      console.log "transit OrbitScene"
+      @transit new OrbitScene @renderer, @transit
+      
 
-
-module.exports = Scene
+module.exports = OrbitScene

@@ -17,7 +17,12 @@ class Main
     @renderer.sortObjects = true
     $('#world').append @renderer.domElement
 
-    @currentScene = new Scene @renderer
+    @currentScene = undefined
+    transit = (s)=>
+      @currentScene.input.offAll()
+      @currentScene = s
+
+    @currentScene = new Scene @renderer, transit
     
     @stats = new Stats
     @stats.setMode 0  # 0: fps, 1: ms, 2: mb
