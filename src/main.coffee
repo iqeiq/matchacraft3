@@ -1,6 +1,5 @@
 'use strict'
 
-util = require './util'
 Scene = require './scene'
 
 
