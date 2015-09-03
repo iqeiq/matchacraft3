@@ -4,24 +4,16 @@ class Marching
   constructor: (@SIZE, isolevel, generator)->
     points = []
     values = []
-    min = 0
-    max = @SIZE 
-    range = max - min - 1
-
-    [0...@SIZE].forEach (k)=>
-      [0...@SIZE].forEach (j)=>
-        [0...@SIZE].forEach (i)=>
-          x = min + range * i / (@SIZE - 1)
-          y = min + range * j / (@SIZE - 1)
-          z = min + range * k / (@SIZE - 1)
+    
+    [0...@SIZE].forEach (z)=>
+      [0...@SIZE].forEach (y)=>
+        [0...@SIZE].forEach (x)=>
           points.push new THREE.Vector3(x, y, z)
-          value = generator x, y, z, i, j, k
+          value = generator x, y, z
           values.push value
    
     size2 = @SIZE * @SIZE
-    
     vlist = new Array 12
-  
     geometry = new THREE.Geometry()
     vertexIndex = 0
   
@@ -61,42 +53,50 @@ class Marching
           return if bits is 0
     
           mu = 0.5 
+
+          vl = (v1, v2)->
+            eps = 0.00001
+            return 0 if Math.abs(isolevel - v1) < eps
+            return 1 if Math.abs(isolevel - v2) < eps
+            return 0 if Math.abs(v1 - v2) < eps
+            (isolevel - v1) / (v2 - v1) 
+
     
           if bits & 1
-            mu = (isolevel - value0) / (value1 - value0)
+            mu = vl value0, value1
             vlist[0] = points[p].clone().lerp points[px], mu
           if bits & 2
-            mu = (isolevel - value1) / (value3 - value1)
+            mu = vl value1, value3
             vlist[1] = points[px].clone().lerp points[pxy], mu
           if bits & 4
-            mu = (isolevel - value2) / (value3 - value2)
+            mu = vl value2, value3
             vlist[2] = points[py].clone().lerp points[pxy], mu
           if bits & 8
-            mu = (isolevel - value0) / (value2 - value0)
+            mu = vl value0, value2
             vlist[3] = points[p].clone().lerp points[py], mu
           if bits & 16
-            mu = (isolevel - value4) / (value5 - value4)
+            mu = vl value4, value5
             vlist[4] = points[pz].clone().lerp points[pxz], mu
           if bits & 32
-            mu = (isolevel - value5) / (value7 - value5)
+            mu = vl value5, value7
             vlist[5] = points[pxz].clone().lerp points[pxyz], mu
           if bits & 64
-            mu = (isolevel - value6) / (value7 - value6)
+            mu = vl value6, value7
             vlist[6] = points[pyz].clone().lerp points[pxyz], mu
           if bits & 128
-            mu = (isolevel - value4) / (value6 - value4)
+            mu = vl value4, value6
             vlist[7] = points[pz].clone().lerp points[pyz], mu
           if bits & 256
-            mu = (isolevel - value0) / (value4 - value0)
+            mu = vl value0, value4
             vlist[8] = points[p].clone().lerp points[pz], mu
           if bits & 512
-            mu = (isolevel - value1) / (value5 - value1)
+            mu = vl value1, value5
             vlist[9] = points[px].clone().lerp points[pxz], mu
           if bits & 1024
-            mu = (isolevel - value3) / (value7 - value3)
+            mu = vl value3, value7
             vlist[10] = points[pxy].clone().lerp points[pxyz], mu 
           if bits & 2048 
-            mu = (isolevel - value2) / (value6 - value2)
+            mu = vl value2, value6
             vlist[11] = points[py].clone().lerp points[pyz], mu
           
           i = 0
@@ -125,8 +125,6 @@ class Marching
     geometry.computeBoundingSphere()
 
     material = new THREE.MeshLambertMaterial
-        #color: 0x00cc33
-        #side: THREE.DoubleSide
         vertexColors: THREE.VertexColors
     @mesh = new THREE.Mesh geometry, material
 

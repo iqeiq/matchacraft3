@@ -54,8 +54,8 @@ class OrbitScene extends Scene
 
       console.log "height: [#{hmin}, #{hmax}]"
 
-    @march = new Marching @SIZE, 0.001, (x, y, z, i, j, k)=>
-      h = height[k * @SIZE + i]
+    @march = new Marching @SIZE, 0.0001, (x, y, z)=>
+      h = height[z * @SIZE + x]
       v = if h < y then 0  else 1 
     @scene.add @march.mesh
 

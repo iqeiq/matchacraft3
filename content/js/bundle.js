@@ -265,37 +265,31 @@ util = require('./util');
 
 Marching = (function() {
   function Marching(SIZE, isolevel, generator) {
-    var geometry, l, m, material, max, min, points, range, ref, ref1, results, results1, size2, values, vertexIndex, vlist;
+    var geometry, j, k, material, points, ref, ref1, results, results1, size2, values, vertexIndex, vlist;
     this.SIZE = SIZE;
     points = [];
     values = [];
-    min = 0;
-    max = this.SIZE;
-    range = max - min - 1;
     (function() {
       results = [];
-      for (var l = 0, ref = this.SIZE; 0 <= ref ? l < ref : l > ref; 0 <= ref ? l++ : l--){ results.push(l); }
+      for (var j = 0, ref = this.SIZE; 0 <= ref ? j < ref : j > ref; 0 <= ref ? j++ : j--){ results.push(j); }
       return results;
     }).apply(this).forEach((function(_this) {
-      return function(k) {
-        var l, ref, results;
+      return function(z) {
+        var j, ref, results;
         return (function() {
           results = [];
-          for (var l = 0, ref = _this.SIZE; 0 <= ref ? l < ref : l > ref; 0 <= ref ? l++ : l--){ results.push(l); }
+          for (var j = 0, ref = _this.SIZE; 0 <= ref ? j < ref : j > ref; 0 <= ref ? j++ : j--){ results.push(j); }
           return results;
-        }).apply(this).forEach(function(j) {
-          var l, ref, results;
+        }).apply(this).forEach(function(y) {
+          var j, ref, results;
           return (function() {
             results = [];
-            for (var l = 0, ref = _this.SIZE; 0 <= ref ? l < ref : l > ref; 0 <= ref ? l++ : l--){ results.push(l); }
+            for (var j = 0, ref = _this.SIZE; 0 <= ref ? j < ref : j > ref; 0 <= ref ? j++ : j--){ results.push(j); }
             return results;
-          }).apply(this).forEach(function(i) {
-            var value, x, y, z;
-            x = min + range * i / (_this.SIZE - 1);
-            y = min + range * j / (_this.SIZE - 1);
-            z = min + range * k / (_this.SIZE - 1);
+          }).apply(this).forEach(function(x) {
+            var value;
             points.push(new THREE.Vector3(x, y, z));
-            value = generator(x, y, z, i, j, k);
+            value = generator(x, y, z);
             return values.push(value);
           });
         });
@@ -307,23 +301,23 @@ Marching = (function() {
     vertexIndex = 0;
     (function() {
       results1 = [];
-      for (var m = 0, ref1 = this.SIZE - 1; 0 <= ref1 ? m < ref1 : m > ref1; 0 <= ref1 ? m++ : m--){ results1.push(m); }
+      for (var k = 0, ref1 = this.SIZE - 1; 0 <= ref1 ? k < ref1 : k > ref1; 0 <= ref1 ? k++ : k--){ results1.push(k); }
       return results1;
     }).apply(this).forEach((function(_this) {
       return function(z) {
-        var m, ref1, results1;
+        var k, ref1, results1;
         return (function() {
           results1 = [];
-          for (var m = 0, ref1 = _this.SIZE - 1; 0 <= ref1 ? m < ref1 : m > ref1; 0 <= ref1 ? m++ : m--){ results1.push(m); }
+          for (var k = 0, ref1 = _this.SIZE - 1; 0 <= ref1 ? k < ref1 : k > ref1; 0 <= ref1 ? k++ : k--){ results1.push(k); }
           return results1;
         }).apply(this).forEach(function(y) {
-          var m, ref1, results1;
+          var k, ref1, results1;
           return (function() {
             results1 = [];
-            for (var m = 0, ref1 = _this.SIZE - 1; 0 <= ref1 ? m < ref1 : m > ref1; 0 <= ref1 ? m++ : m--){ results1.push(m); }
+            for (var k = 0, ref1 = _this.SIZE - 1; 0 <= ref1 ? k < ref1 : k > ref1; 0 <= ref1 ? k++ : k--){ results1.push(k); }
             return results1;
           }).apply(this).forEach(function(x) {
-            var bits, cubeindex, face, i, index1, index2, index3, mu, p, px, pxy, pxyz, pxz, py, pyz, pz, results1, value0, value1, value2, value3, value4, value5, value6, value7;
+            var bits, cubeindex, face, i, index1, index2, index3, mu, p, px, pxy, pxyz, pxz, py, pyz, pz, results1, value0, value1, value2, value3, value4, value5, value6, value7, vl;
             p = x + _this.SIZE * y + size2 * z;
             px = p + 1;
             py = p + _this.SIZE;
@@ -370,52 +364,66 @@ Marching = (function() {
               return;
             }
             mu = 0.5;
+            vl = function(v1, v2) {
+              var eps;
+              eps = 0.00001;
+              if (Math.abs(isolevel - v1) < eps) {
+                return 0;
+              }
+              if (Math.abs(isolevel - v2) < eps) {
+                return 1;
+              }
+              if (Math.abs(v1 - v2) < eps) {
+                return 0;
+              }
+              return (isolevel - v1) / (v2 - v1);
+            };
             if (bits & 1) {
-              mu = (isolevel - value0) / (value1 - value0);
+              mu = vl(value0, value1);
               vlist[0] = points[p].clone().lerp(points[px], mu);
             }
             if (bits & 2) {
-              mu = (isolevel - value1) / (value3 - value1);
+              mu = vl(value1, value3);
               vlist[1] = points[px].clone().lerp(points[pxy], mu);
             }
             if (bits & 4) {
-              mu = (isolevel - value2) / (value3 - value2);
+              mu = vl(value2, value3);
               vlist[2] = points[py].clone().lerp(points[pxy], mu);
             }
             if (bits & 8) {
-              mu = (isolevel - value0) / (value2 - value0);
+              mu = vl(value0, value2);
               vlist[3] = points[p].clone().lerp(points[py], mu);
             }
             if (bits & 16) {
-              mu = (isolevel - value4) / (value5 - value4);
+              mu = vl(value4, value5);
               vlist[4] = points[pz].clone().lerp(points[pxz], mu);
             }
             if (bits & 32) {
-              mu = (isolevel - value5) / (value7 - value5);
+              mu = vl(value5, value7);
               vlist[5] = points[pxz].clone().lerp(points[pxyz], mu);
             }
             if (bits & 64) {
-              mu = (isolevel - value6) / (value7 - value6);
+              mu = vl(value6, value7);
               vlist[6] = points[pyz].clone().lerp(points[pxyz], mu);
             }
             if (bits & 128) {
-              mu = (isolevel - value4) / (value6 - value4);
+              mu = vl(value4, value6);
               vlist[7] = points[pz].clone().lerp(points[pyz], mu);
             }
             if (bits & 256) {
-              mu = (isolevel - value0) / (value4 - value0);
+              mu = vl(value0, value4);
               vlist[8] = points[p].clone().lerp(points[pz], mu);
             }
             if (bits & 512) {
-              mu = (isolevel - value1) / (value5 - value1);
+              mu = vl(value1, value5);
               vlist[9] = points[px].clone().lerp(points[pxz], mu);
             }
             if (bits & 1024) {
-              mu = (isolevel - value3) / (value7 - value3);
+              mu = vl(value3, value7);
               vlist[10] = points[pxy].clone().lerp(points[pxyz], mu);
             }
             if (bits & 2048) {
-              mu = (isolevel - value2) / (value6 - value2);
+              mu = vl(value2, value6);
               vlist[11] = points[py].clone().lerp(points[pyz], mu);
             }
             i = 0;
@@ -521,21 +529,21 @@ OrbitScene = (function(superClass) {
     hmin = this.SIZE - 1;
     (function(_this) {
       return (function() {
-        var l, m, quality, results, results1, size;
+        var j, l, quality, results, results1, size;
         size = _this.SIZE * _this.SIZE;
         quality = 2;
         (function() {
           results = [];
-          for (var l = 0; 0 <= size ? l < size : l > size; 0 <= size ? l++ : l--){ results.push(l); }
+          for (var j = 0; 0 <= size ? j < size : j > size; 0 <= size ? j++ : j--){ results.push(j); }
           return results;
         }).apply(this).forEach(function(i) {
           return height.push(0);
         });
         [0, 1, 2, 3].forEach(function(k) {
-          var m, results1;
+          var l, results1;
           (function() {
             results1 = [];
-            for (var m = 0; 0 <= size ? m < size : m > size; 0 <= size ? m++ : m--){ results1.push(m); }
+            for (var l = 0; 0 <= size ? l < size : l > size; 0 <= size ? l++ : l--){ results1.push(l); }
             return results1;
           }).apply(this).forEach(function(i) {
             var x, z;
@@ -549,7 +557,7 @@ OrbitScene = (function(superClass) {
         });
         (function() {
           results1 = [];
-          for (var m = 0; 0 <= size ? m < size : m > size; 0 <= size ? m++ : m--){ results1.push(m); }
+          for (var l = 0; 0 <= size ? l < size : l > size; 0 <= size ? l++ : l--){ results1.push(l); }
           return results1;
         }).apply(this).forEach(function(i) {
           height[i] *= 0.5;
@@ -566,10 +574,10 @@ OrbitScene = (function(superClass) {
         return console.log("height: [" + hmin + ", " + hmax + "]");
       });
     })(this)();
-    this.march = new Marching(this.SIZE, 0.001, (function(_this) {
-      return function(x, y, z, i, j, k) {
+    this.march = new Marching(this.SIZE, 0.0001, (function(_this) {
+      return function(x, y, z) {
         var h, v;
-        h = height[k * _this.SIZE + i];
+        h = height[z * _this.SIZE + x];
         return v = h < y ? 0 : 1;
       };
     })(this));
