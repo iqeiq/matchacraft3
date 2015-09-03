@@ -49,8 +49,8 @@ build = ->
     .pipe buffer()
     .pipe sourcemaps.init
       loadMaps: true
-    .pipe uglify
-      preserveComments: 'some'
+    #.pipe uglify
+    #  preserveComments: 'some'
     .pipe sourcemaps.write './',
       addComment: true
       sourceRoot: './src'
