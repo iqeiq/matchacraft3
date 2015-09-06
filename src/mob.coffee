@@ -1,4 +1,5 @@
-class Mob
+
+class Mob extends THREE.Object3D
   constructor: ->
 
 

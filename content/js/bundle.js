@@ -258,248 +258,47 @@ $(function() {
 });
 
 
-},{"./scene":5}],3:[function(require,module,exports){
-var Marching, util;
+},{"./scene":4}],3:[function(require,module,exports){
+var Mob,
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
 
-util = require('./util');
+Mob = (function(superClass) {
+  extend(Mob, superClass);
 
-Marching = (function() {
-  function Marching(SIZE, isolevel, generator) {
-    var geometry, j, k, material, points, ref, ref1, results, results1, size2, values, vertexIndex, vlist;
-    this.SIZE = SIZE;
-    points = [];
-    values = [];
-    (function() {
-      results = [];
-      for (var j = 0, ref = this.SIZE; 0 <= ref ? j < ref : j > ref; 0 <= ref ? j++ : j--){ results.push(j); }
-      return results;
-    }).apply(this).forEach((function(_this) {
-      return function(z) {
-        var j, ref, results;
-        return (function() {
-          results = [];
-          for (var j = 0, ref = _this.SIZE; 0 <= ref ? j < ref : j > ref; 0 <= ref ? j++ : j--){ results.push(j); }
-          return results;
-        }).apply(this).forEach(function(y) {
-          var j, ref, results;
-          return (function() {
-            results = [];
-            for (var j = 0, ref = _this.SIZE; 0 <= ref ? j < ref : j > ref; 0 <= ref ? j++ : j--){ results.push(j); }
-            return results;
-          }).apply(this).forEach(function(x) {
-            var value;
-            points.push(new THREE.Vector3(x, y, z));
-            value = generator(x, y, z);
-            return values.push(value);
-          });
-        });
-      };
-    })(this));
-    size2 = this.SIZE * this.SIZE;
-    vlist = new Array(12);
-    geometry = new THREE.Geometry();
-    vertexIndex = 0;
-    (function() {
-      results1 = [];
-      for (var k = 0, ref1 = this.SIZE - 1; 0 <= ref1 ? k < ref1 : k > ref1; 0 <= ref1 ? k++ : k--){ results1.push(k); }
-      return results1;
-    }).apply(this).forEach((function(_this) {
-      return function(z) {
-        var k, ref1, results1;
-        return (function() {
-          results1 = [];
-          for (var k = 0, ref1 = _this.SIZE - 1; 0 <= ref1 ? k < ref1 : k > ref1; 0 <= ref1 ? k++ : k--){ results1.push(k); }
-          return results1;
-        }).apply(this).forEach(function(y) {
-          var k, ref1, results1;
-          return (function() {
-            results1 = [];
-            for (var k = 0, ref1 = _this.SIZE - 1; 0 <= ref1 ? k < ref1 : k > ref1; 0 <= ref1 ? k++ : k--){ results1.push(k); }
-            return results1;
-          }).apply(this).forEach(function(x) {
-            var bits, cubeindex, face, i, index1, index2, index3, mu, p, px, pxy, pxyz, pxz, py, pyz, pz, results1, value0, value1, value2, value3, value4, value5, value6, value7, vl;
-            p = x + _this.SIZE * y + size2 * z;
-            px = p + 1;
-            py = p + _this.SIZE;
-            pxy = py + 1;
-            pz = p + size2;
-            pxz = px + size2;
-            pyz = py + size2;
-            pxyz = pxy + size2;
-            value0 = values[p];
-            value1 = values[px];
-            value2 = values[py];
-            value3 = values[pxy];
-            value4 = values[pz];
-            value5 = values[pxz];
-            value6 = values[pyz];
-            value7 = values[pxyz];
-            cubeindex = 0;
-            if (value0 < isolevel) {
-              cubeindex |= 1;
-            }
-            if (value1 < isolevel) {
-              cubeindex |= 2;
-            }
-            if (value2 < isolevel) {
-              cubeindex |= 8;
-            }
-            if (value3 < isolevel) {
-              cubeindex |= 4;
-            }
-            if (value4 < isolevel) {
-              cubeindex |= 16;
-            }
-            if (value5 < isolevel) {
-              cubeindex |= 32;
-            }
-            if (value6 < isolevel) {
-              cubeindex |= 128;
-            }
-            if (value7 < isolevel) {
-              cubeindex |= 64;
-            }
-            bits = MARCH.edgeTable[cubeindex];
-            if (bits === 0) {
-              return;
-            }
-            mu = 0.5;
-            vl = function(v1, v2) {
-              var eps;
-              eps = 0.00001;
-              if (Math.abs(isolevel - v1) < eps) {
-                return 0;
-              }
-              if (Math.abs(isolevel - v2) < eps) {
-                return 1;
-              }
-              if (Math.abs(v1 - v2) < eps) {
-                return 0;
-              }
-              return (isolevel - v1) / (v2 - v1);
-            };
-            if (bits & 1) {
-              mu = vl(value0, value1);
-              vlist[0] = points[p].clone().lerp(points[px], mu);
-            }
-            if (bits & 2) {
-              mu = vl(value1, value3);
-              vlist[1] = points[px].clone().lerp(points[pxy], mu);
-            }
-            if (bits & 4) {
-              mu = vl(value2, value3);
-              vlist[2] = points[py].clone().lerp(points[pxy], mu);
-            }
-            if (bits & 8) {
-              mu = vl(value0, value2);
-              vlist[3] = points[p].clone().lerp(points[py], mu);
-            }
-            if (bits & 16) {
-              mu = vl(value4, value5);
-              vlist[4] = points[pz].clone().lerp(points[pxz], mu);
-            }
-            if (bits & 32) {
-              mu = vl(value5, value7);
-              vlist[5] = points[pxz].clone().lerp(points[pxyz], mu);
-            }
-            if (bits & 64) {
-              mu = vl(value6, value7);
-              vlist[6] = points[pyz].clone().lerp(points[pxyz], mu);
-            }
-            if (bits & 128) {
-              mu = vl(value4, value6);
-              vlist[7] = points[pz].clone().lerp(points[pyz], mu);
-            }
-            if (bits & 256) {
-              mu = vl(value0, value4);
-              vlist[8] = points[p].clone().lerp(points[pz], mu);
-            }
-            if (bits & 512) {
-              mu = vl(value1, value5);
-              vlist[9] = points[px].clone().lerp(points[pxz], mu);
-            }
-            if (bits & 1024) {
-              mu = vl(value3, value7);
-              vlist[10] = points[pxy].clone().lerp(points[pxyz], mu);
-            }
-            if (bits & 2048) {
-              mu = vl(value2, value6);
-              vlist[11] = points[py].clone().lerp(points[pyz], mu);
-            }
-            i = 0;
-            cubeindex <<= 4;
-            results1 = [];
-            while (MARCH.triTable[cubeindex + i] !== -1) {
-              index1 = MARCH.triTable[cubeindex + i];
-              index2 = MARCH.triTable[cubeindex + i + 1];
-              index3 = MARCH.triTable[cubeindex + i + 2];
-              geometry.vertices.push(vlist[index1].clone());
-              geometry.vertices.push(vlist[index2].clone());
-              geometry.vertices.push(vlist[index3].clone());
-              face = new THREE.Face3(vertexIndex, vertexIndex + 1, vertexIndex + 2);
-              face.color = new THREE.Color(0, 0.5 + util.randf(0.5), 0);
-              geometry.faces.push(face);
-              geometry.faceVertexUvs[0].push([new THREE.Vector2(0, 0), new THREE.Vector2(0, 1), new THREE.Vector2(1, 1)]);
-              vertexIndex += 3;
-              results1.push(i += 3);
-            }
-            return results1;
-          });
-        });
-      };
-    })(this));
-    geometry.computeFaceNormals();
-    geometry.computeVertexNormals();
-    geometry.computeBoundingSphere();
-    material = new THREE.MeshLambertMaterial({
-      vertexColors: THREE.VertexColors
-    });
-    this.mesh = new THREE.Mesh(geometry, material);
-  }
-
-  return Marching;
-
-})();
-
-module.exports = Marching;
-
-
-},{"./util":6}],4:[function(require,module,exports){
-var Mob;
-
-Mob = (function() {
   function Mob() {}
 
   Mob.prototype.update = function() {};
 
   return Mob;
 
-})();
+})(THREE.Object3D);
 
 module.exports = Mob;
 
 
-},{}],5:[function(require,module,exports){
-var Input, Marching, Mob, OrbitScene, PLScene, Scene, util,
+},{}],4:[function(require,module,exports){
+var Input, Mob, OrbitScene, PLScene, Scene, World,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
-
-util = require('./util');
 
 Input = require('./input');
 
 Mob = require('./mob');
 
-Marching = require('./marching');
+World = require('./world');
 
 Scene = (function() {
   function Scene(renderer, transit) {
+    var height, width;
     this.renderer = renderer;
     this.transit = transit;
     this.clock = new THREE.Clock;
     this.input = new Input(document.body);
     this.scene = new THREE.Scene;
-    this.camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 1, 1000);
+    width = window.innerWidth;
+    height = window.innerHeight;
+    this.camera = new THREE.PerspectiveCamera(72, width / height, 1, 1000);
   }
 
   Scene.prototype.update = function() {
@@ -514,89 +313,18 @@ OrbitScene = (function(superClass) {
   extend(OrbitScene, superClass);
 
   function OrbitScene(renderer, transit) {
-    var bgeometry, bmaterial, bmesh, hash, height, hmax, hmin;
     this.renderer = renderer;
     this.transit = transit;
     OrbitScene.__super__.constructor.call(this, this.renderer, this.transit);
-    this.camera.position.z = 100;
+    this.camera.position.z = -50;
+    this.camera.position.x = 50;
+    this.camera.position.y = 100;
     this.controls = new THREE.OrbitControls(this.camera);
-    hash = util.rand(1000000);
-    console.log("seed: " + hash);
-    hash = 342468;
-    this.SIZE = 32;
-    height = [];
-    hmax = 0;
-    hmin = this.SIZE - 1;
-    (function(_this) {
-      return (function() {
-        var j, l, quality, results, results1, size;
-        size = _this.SIZE * _this.SIZE;
-        quality = 2;
-        (function() {
-          results = [];
-          for (var j = 0; 0 <= size ? j < size : j > size; 0 <= size ? j++ : j--){ results.push(j); }
-          return results;
-        }).apply(this).forEach(function(i) {
-          return height.push(0);
-        });
-        [0, 1, 2, 3].forEach(function(k) {
-          var l, results1;
-          (function() {
-            results1 = [];
-            for (var l = 0; 0 <= size ? l < size : l > size; 0 <= size ? l++ : l--){ results1.push(l); }
-            return results1;
-          }).apply(this).forEach(function(i) {
-            var x, z;
-            x = i % _this.SIZE;
-            z = (i / _this.SIZE) | 0;
-            x = (x + 2) / 2;
-            z = (z + 3) / 2;
-            return height[i] += util.noise(x / quality, z / quality, hash) * quality;
-          });
-          return quality *= 4;
-        });
-        (function() {
-          results1 = [];
-          for (var l = 0; 0 <= size ? l < size : l > size; 0 <= size ? l++ : l--){ results1.push(l); }
-          return results1;
-        }).apply(this).forEach(function(i) {
-          height[i] *= 0.5;
-          height[i] += _this.SIZE / 2;
-          if (height[i] < 0) {
-            console.log(height[i] = 0);
-          }
-          if (height[i] > _this.SIZE - 1) {
-            console.log(height[i] = _this.SIZE - 1);
-          }
-          hmax = Math.max(height[i], hmax);
-          return hmin = Math.min(height[i], hmin);
-        });
-        return console.log("height: [" + hmin + ", " + hmax + "]");
-      });
-    })(this)();
-    this.march = new Marching(this.SIZE, 0.0001, (function(_this) {
-      return function(x, y, z) {
-        var h, v;
-        h = height[z * _this.SIZE + x];
-        return v = h < y ? 0 : 1;
-      };
-    })(this));
-    this.scene.add(this.march.mesh);
-    bgeometry = new THREE.BoxGeometry(this.SIZE, hmax - hmin, this.SIZE);
-    bmaterial = new THREE.MeshBasicMaterial({
-      color: 0x00ffff,
-      wireframe: true
-    });
-    bmesh = new THREE.Mesh(bgeometry, bmaterial);
-    this.scene.add(bmesh);
-    bmesh.position.set(this.SIZE / 2, (hmax + hmin) / 2, this.SIZE / 2);
-    this.light = new THREE.DirectionalLight(0xffffff, 0.7);
-    this.light.position.set(0.5, 0.7, 0.3).normalize();
-    this.scene.add(this.light);
-    this.scene.add(new THREE.AmbientLight(0x202020));
+    this.world = new World(this.scene, 128);
   }
 
   OrbitScene.prototype.update = function() {
+    this.world.update(this.clock.getDelta());
     this.controls.update();
     return OrbitScene.__super__.update.call(this);
   };
@@ -651,7 +379,159 @@ PLScene = (function(superClass) {
 module.exports = OrbitScene;
 
 
-},{"./input":1,"./marching":3,"./mob":4,"./util":6}],6:[function(require,module,exports){
+},{"./input":1,"./mob":3,"./world":7}],5:[function(require,module,exports){
+var Terrain, util;
+
+util = require('./util');
+
+Terrain = (function() {
+  function Terrain(size, seed) {
+    this.size = size;
+    this.seed = seed;
+    this.size2 = this.size * this.size;
+    if (this.seed == null) {
+      this.seed = util.rand(1000000);
+    }
+    this.heightMin = 0;
+    this.heightRange = 128;
+    this.cell = new Uint8Array(this.size2 * this.heightRange);
+    this.generateMesh(32, 0.5, this.heightMin, this.heightMin + this.heightRange - 1);
+  }
+
+  Terrain.prototype.getType = function(x, y, z) {
+    if (x < 0 || x > this.size - 1) {
+      return 0;
+    }
+    if (z < 0 || z > this.size - 1) {
+      return 0;
+    }
+    if (y < this.heightMin || y > this.heightMin + this.heightRange - 1) {
+      return 0;
+    }
+    return this.cell[x + z * this.size + y * this.size2];
+  };
+
+  Terrain.prototype.generateMesh = function(inflate, incline, min, max) {
+    var height;
+    height = new Int16Array(this.size * this.size);
+    (function(_this) {
+      return (function() {
+        var hmax, hmin, l, ref, results;
+        hmax = min;
+        hmin = max;
+        (function() {
+          results = [];
+          for (var l = 0, ref = _this.size2; 0 <= ref ? l < ref : l > ref; 0 <= ref ? l++ : l--){ results.push(l); }
+          return results;
+        }).apply(this).forEach(function(v, i) {
+          var l, quality, ref, results, x, z;
+          x = (i % _this.size + 2) / 2;
+          z = (((i / _this.size) | 0) + 3) / 2;
+          quality = 2;
+          [0, 1, 2, 3].forEach(function(u, k) {
+            height[i] += util.noise(x / quality, z / quality, _this.seed) * quality;
+            return quality *= 4;
+          });
+          height[i] = ~~Math.max(min, Math.min(max, height[i] * incline + inflate));
+          (function() {
+            results = [];
+            for (var l = 0, ref = height[i]; 0 <= ref ? l <= ref : l >= ref; 0 <= ref ? l++ : l--){ results.push(l); }
+            return results;
+          }).apply(this).forEach(function(w, j) {
+            return _this.cell[i + j * _this.size2] = 1;
+          });
+          hmax = Math.max(hmax, height[i]);
+          return hmin = Math.min(hmin, height[i]);
+        });
+        return console.log("height: [" + hmin + ", " + hmax + "]");
+      });
+    })(this)();
+    this.geometry = new THREE.BufferGeometry;
+    this.material = new THREE.MeshPhongMaterial({
+      color: 0x864815,
+      specular: 0x111111
+    });
+    (function(_this) {
+      return (function() {
+        var colors, current, dir, faceNum, faceTemp, indexTemp, indices, normals, padding, vertices;
+        faceTemp = [[[0.0, 1.0, 0.0], [0.0, 1.0, 1.0], [1.0, 1.0, 0.0], [1.0, 1.0, 1.0]], [[0.0, 1.0, 0.0], [0.0, 0.0, 0.0], [0.0, 1.0, 1.0], [0.0, 0.0, 1.0]], [[1.0, 1.0, 1.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0], [1.0, 0.0, 0.0]], [[1.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]], [[0.0, 1.0, 1.0], [0.0, 0.0, 1.0], [1.0, 1.0, 1.0], [1.0, 0.0, 1.0]], [[1.0, 0.0, 1.0], [0.0, 0.0, 1.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]]];
+        indexTemp = [[0, 1, 2], [2, 1, 3]];
+        dir = [[0, 1, 0], [-1, 0, 0], [1, 0, 0], [0, 0, -1], [0, 0, 1], [0, -1, 0]];
+        faceNum = 0;
+        (function() {
+          return _this.cell.forEach(function(v, i) {
+            var x, y, z;
+            if (v === 0) {
+              return;
+            }
+            x = i % _this.size;
+            z = ((i % _this.size2) / _this.size) | 0;
+            y = (i / _this.size2) | 0;
+            return dir.forEach(function(d) {
+              var type;
+              type = _this.getType(x + d[0], y + d[1], z + d[2]);
+              if (type === 0) {
+                return faceNum++;
+              }
+            });
+          });
+        })();
+        console.log("faceNum: " + faceNum);
+        vertices = new Float32Array(faceNum * 4 * 3);
+        indices = new Uint32Array(faceNum * 2 * 3);
+        normals = new Float32Array(faceNum * 4 * 3);
+        colors = new Float32Array(faceNum * 4 * 3);
+        current = 0;
+        padding = 0.00001;
+        _this.cell.forEach(function(v, i) {
+          var x, y, z;
+          if (v === 0) {
+            return;
+          }
+          x = i % _this.size;
+          z = ((i % _this.size2) / _this.size) | 0;
+          y = (i / _this.size2) | 0;
+          return dir.forEach(function(d, face) {
+            var type;
+            type = _this.getType(x + d[0], y + d[1], z + d[2]);
+            if (type === 0) {
+              faceTemp[face].forEach(function(pos, o) {
+                vertices[current * 12 + o * 3 + 0] = pos[0] + x + (pos[0] < 0.5 ? padding : -padding);
+                vertices[current * 12 + o * 3 + 1] = pos[1] + y + (pos[1] < 0.5 ? padding : -padding);
+                vertices[current * 12 + o * 3 + 2] = pos[2] + z + (pos[2] < 0.5 ? padding : -padding);
+                normals[current * 12 + o * 3 + 0] = face === 1 ? -1.0 : (face === 2 ? 1.0 : 0.0);
+                normals[current * 12 + o * 3 + 1] = face === 5 ? -1.0 : (face === 0 ? 1.0 : 0.0);
+                normals[current * 12 + o * 3 + 2] = face === 3 ? -1.0 : (face === 4 ? 1.0 : 0.0);
+                colors[current * 12 + o * 3 + 0] = 1.0;
+                colors[current * 12 + o * 3 + 1] = 1.0;
+                return colors[current * 12 + o * 3 + 2] = 1.0;
+              });
+              indexTemp.forEach(function(ind, o) {
+                indices[current * 6 + o * 3 + 0] = ind[0] + current * 4;
+                indices[current * 6 + o * 3 + 1] = ind[1] + current * 4;
+                return indices[current * 6 + o * 3 + 2] = ind[2] + current * 4;
+              });
+              return current++;
+            }
+          });
+        });
+        _this.geometry.addAttribute("position", new THREE.BufferAttribute(vertices, 3));
+        _this.geometry.addAttribute("index", new THREE.BufferAttribute(indices, 3));
+        _this.geometry.addAttribute("normal", new THREE.BufferAttribute(normals, 3));
+        return _this.geometry.addAttribute("color", new THREE.BufferAttribute(colors, 3));
+      });
+    })(this)();
+    return this.mesh = new THREE.Mesh(this.geometry, this.material);
+  };
+
+  return Terrain;
+
+})();
+
+module.exports = Terrain;
+
+
+},{"./util":6}],6:[function(require,module,exports){
 var Utility;
 
 Utility = (function() {
@@ -688,7 +568,34 @@ Utility = (function() {
 module.exports = Utility;
 
 
-},{}]},{},[2])
+},{}],7:[function(require,module,exports){
+var Terrain, World;
+
+Terrain = require('./terrain');
+
+World = (function() {
+  function World(scene, size) {
+    this.scene = scene;
+    this.size = size;
+    this.terrain = new Terrain(this.size);
+    this.scene.add(this.terrain.mesh);
+    this.light = new THREE.DirectionalLight(0xffffff, 0.6);
+    this.light.position.set(0.5, 0.7, 0.3).normalize();
+    this.scene.add(this.light);
+    this.light2 = new THREE.HemisphereLight(0xffffff, 0x111111, 0.3);
+    this.scene.add(this.light2);
+  }
+
+  World.prototype.update = function(delta) {};
+
+  return World;
+
+})();
+
+module.exports = World;
+
+
+},{"./terrain":5}]},{},[2])
 
 
 //# sourceMappingURL=bundle.js.map
