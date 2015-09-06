@@ -1,11 +1,9 @@
 util = require './util'
 
 class Terrain
-  constructor: (@size, @seed)->
+  constructor: (@size, @heightMin = 0, @heightRange = 128, @seed = undefined)->
     @size2 = @size * @size
     @seed ?= util.rand 1000000
-    @heightMin = 0
-    @heightRange = 128
     @cell = new Uint8Array @size2 * @heightRange
     @generateMesh 32, 0.5, @heightMin, @heightMin + @heightRange - 1
 
@@ -22,15 +20,15 @@ class Terrain
       hmax = min
       hmin = max
       
-      [0...@size2].forEach (v, i)=>
+      for i in [0...@size2]
         x = (i % @size + 2) / 2
         z = (((i / @size) | 0) + 3) / 2
         quality = 2  
-        [0...4].forEach (u, k)=>
+        for k in [0...4]
           height[i] += util.noise(x / quality, z / quality, @seed) * quality
           quality *= 4
         height[i] = ~~Math.max min, Math.min(max, height[i] * incline + inflate)
-        [0..height[i]].forEach (w, j)=>
+        for j in [0..height[i]]
           @cell[i + j * @size2] = 1
         hmax = Math.max hmax, height[i]
         hmin = Math.min hmin, height[i]
@@ -76,7 +74,6 @@ class Terrain
       #uvs = new Float32Array faceNum * 4 * 2 
       current = 0
       padding = 0.00001
-      
       
       @cell.forEach (v, i)=>
         return if v is 0

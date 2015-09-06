@@ -1,5 +1,4 @@
 Input = require './input'
-Mob = require './mob'
 World = require './world'
 
 class Scene
@@ -15,44 +14,19 @@ class Scene
   update: ->
     @renderer.render @scene, @camera
 
-class OrbitScene extends Scene
-  constructor: (@renderer, @transit)-> 
-    super @renderer, @transit
-    #@scene.fog = new THREE.Fog 0xffffff, 100, 1000
-    @camera.position.z = -50
-    @camera.position.x = 50
-    @camera.position.y = 100
-    @controls = new THREE.OrbitControls @camera
-
-    @world = new World @scene, 128
-    
-    #@input.onMouseDown THREE.MOUSE.RIGHT, =>
-    #  console.log "transit PLScene"
-    #  @transit new PLScene @renderer, @transit
-
-
-  update: ->
-    @world.update @clock.getDelta()
-    @controls.update()
-    super()
-    
-
 class PLScene extends Scene
   constructor: (@renderer, @transit)-> 
     super @renderer, @transit
-    @camera.position.z = 100
+    @scene.fog = new THREE.Fog 0xffffff, 100, 1000
+    #@camera.position.z = -50
+    #@camera.position.x = 50
+    #@camera.position.y = 100
     @controls = new THREE.PointerLockControls @camera
     @scene.add @controls.getObject()
 
-    geometry = new THREE.BoxGeometry 20, 20, 20
-    material = new THREE.MeshBasicMaterial
-        color: 0xff0000
-        wireframe: true
-    @mesh = new THREE.Mesh geometry, material
-    @scene.add @mesh
+    @world = new World @scene, 128
 
     @input.onMouseDown THREE.MOUSE.LEFT, =>
-      console.log "poyo"
       @controls.enabled = true
       unless document.pointerLockElement
         document.body.requestPointerLock()
@@ -61,8 +35,37 @@ class PLScene extends Scene
       @controls.enabled = false
       if document.pointerLockElement
         document.exitPointerLock()
-      console.log "transit OrbitScene"
-      @transit new OrbitScene @renderer, @transit
+      #console.log "transit OrbitScene"
+      #@transit new OrbitScene @renderer, @transit
+    
+    #@input.onMouseDown THREE.MOUSE.RIGHT, =>
+    #  console.log "transit PLScene"
+    #  @transit new PLScene @renderer, @transit
+
+
+  update: ->
+    if @controls.enabled 
+      @world.update @clock.getDelta()
+      @world.syncCamera @controls
+    super()
+    
+
+class OrbitScene extends Scene
+  constructor: (@renderer, @transit)-> 
+    super @renderer, @transit
+    @camera.position.z = 100
+    @controls = new THREE.OrbitControls @camera
+    
+    geometry = new THREE.BoxGeometry 20, 20, 20
+    material = new THREE.MeshBasicMaterial
+        color: 0xff0000
+        wireframe: true
+    @mesh = new THREE.Mesh geometry, material
+    @scene.add @mesh
+    
+
+  update: ->
+    @controls.update()
       
 
-module.exports = OrbitScene
+module.exports = PLScene
