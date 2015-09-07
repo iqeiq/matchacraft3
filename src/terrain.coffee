@@ -6,12 +6,38 @@ class Terrain
     @seed ?= util.rand 1000000
     @cell = new Uint8Array @size2 * @heightRange
     @generateMesh 32, 0.5, @heightMin, @heightMin + @heightRange - 1
+    console.log "seed: #{@seed}"
 
   getType: (x, y, z)->
     return 0 if x < 0 or x > @size - 1
     return 0 if z < 0 or z > @size - 1
     return 0 if y < @heightMin or y > @heightMin + @heightRange - 1
     @cell[x + z * @size + y * @size2]
+
+  getColor: (type)->
+    black = new THREE.Color 0x000000
+    white = new THREE.Color 0x111111
+    dirt = new THREE.Color 0x8B4513
+    grass = new THREE.Color 0x228b22
+
+    switch type
+      when 0 then [black, black, black, black, black, black] 
+      when 1 then [dirt, dirt, dirt, dirt, dirt, dirt]
+      when 2 then [grass, dirt, dirt, dirt, dirt, dirt]
+      else [white, white, white, white, white, white]
+
+  getCollider: (x, y, z)->
+    [
+      new THREE.Vector3(x, y, z)
+      new THREE.Vector3(x + 1, y + 1, z + 1)
+    ]
+  
+  getHeight: (x, z)->
+    index = x + z * @size
+    hmax = @heightMin + @heightRange - 1
+    for h in [hmax..@heightMin]
+      return h if @cell[index + h * @size2] isnt 0
+    return @heightMin
 
   generateMesh: (inflate, incline, min, max)->
     height = new Int16Array @size * @size
@@ -29,16 +55,18 @@ class Terrain
           quality *= 4
         height[i] = ~~Math.max min, Math.min(max, height[i] * incline + inflate)
         for j in [0..height[i]]
-          @cell[i + j * @size2] = 1
+          if j is height[i]
+            @cell[i + j * @size2] = 2
+          else
+            @cell[i + j * @size2] = 1  
         hmax = Math.max hmax, height[i]
         hmin = Math.min hmin, height[i]
         
       console.log "height: [#{hmin}, #{hmax}]"
 
     @geometry = new THREE.BufferGeometry
-    @material = new THREE.MeshPhongMaterial
-        color: 0x864815
-        specular: 0x111111
+    @material = new THREE.MeshLambertMaterial
+        vertexColors: THREE.VertexColors
 
     do =>
       faceTemp = [
@@ -80,6 +108,7 @@ class Terrain
         x = i % @size
         z = ((i % @size2) / @size) | 0
         y = (i / @size2) | 0
+        col = @getColor @getType(x, y, z)
         dir.forEach (d, face)=>
           type = @getType x + d[0], y + d[1], z + d[2]
           if type is 0
@@ -91,11 +120,11 @@ class Terrain
               normals[ current*12 + o*3 + 0 ] = if face is 1 then -1.0 else (if face is 2 then 1.0 else 0.0)
               normals[ current*12 + o*3 + 1 ] = if face is 5 then -1.0 else (if face is 0 then 1.0 else 0.0)
               normals[ current*12 + o*3 + 2 ] = if face is 3 then -1.0 else (if face is 4 then 1.0 else 0.0)
-    
-              colors[ current*12 + o*3 + 0 ] = 1.0
-              colors[ current*12 + o*3 + 1 ] = 1.0
-              colors[ current*12 + o*3 + 2 ] = 1.0
-    
+              
+              c = col[face]
+              colors[ current*12 + o*3 + 0 ] = c.r + util.randf(c.r / 8.0)
+              colors[ current*12 + o*3 + 1 ] = c.g + util.randf(c.r / 8.0)
+              colors[ current*12 + o*3 + 2 ] = c.b + util.randf(c.r / 8.0)
               #uvs[ current*8 + o*2 + 0 ] = 0.0
               #uvs[ current*8 + o*2 + 1 ] = 0.0
 
