@@ -22,7 +22,7 @@ class MainScene extends Scene
     @controls = new THREE.PointerLockControls @camera
     @scene.add @controls.getObject()
     
-    @world = new World @scene, 128
+    @world = new World @renderer, @scene, @input, @camera, 8
     @world.syncCamera @controls
     
     @input.onMouseDown THREE.MOUSE.LEFT, =>
@@ -30,10 +30,10 @@ class MainScene extends Scene
         @controls.enabled = true
         document.body.requestPointerLock()
 
-    @input.onDoubleClick =>
+    ###@input.onDoubleClick =>
       if document.pointerLockElement
         @controls.enabled = false
-        document.exitPointerLock()
+        document.exitPointerLock()###
       #console.log "transit OrbitScene"
       #@transit new OrbitScene @renderer, @transit
     
@@ -43,7 +43,9 @@ class MainScene extends Scene
 
   update: ->
     if @controls.enabled
-      @world.update @clock.getDelta()
+      delta = @clock.getDelta()
+      delta = Math.min(1.0/60, delta)
+      @world.update delta
       @world.syncCamera @controls
     super()
     

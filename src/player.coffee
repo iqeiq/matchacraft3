@@ -4,7 +4,7 @@ Input = require './input'
 class Player extends THREE.Object3D
   constructor: (@world, x, y, z)->
     super()
-    @input = new Input
+    @input = @world.input
     @velocity = new THREE.Vector3 0, 0, 0
     @canJump = false
     @canDoubleJump = false
@@ -18,8 +18,15 @@ class Player extends THREE.Object3D
     @lookAt new THREE.Vector3(x, 0, z)
     @ray = new THREE.Raycaster
     @ray.near = 0
-    @ray.far = 4
+    @ray.far = 5
+    @pickFlag = false
 
+    @input.onMouseDown THREE.MOUSE.LEFT, =>
+      @pickFlag = true
+    @input.onMouseUp THREE.MOUSE.LEFT, =>
+      @pickFlag = false
+    
+    
   getCollider: ->
     @collider = [
       @position.clone().add new THREE.Vector3(- @width / 2, -0.5, -@width / 2)
@@ -62,9 +69,40 @@ class Player extends THREE.Object3D
       return false if c[1].z < p[0].z
       true
 
-  update: (delta)->
-    gravityUpdate = false
+  pick: ->
+    origin = @position.clone().add new THREE.Vector3(0, @height - 0.6, 0)
+    mouse =  new THREE.Vector3 0, 0, 1
+    mouse.unproject @world.camera
+    direction = mouse.sub(origin).normalize()
+    @ray.set origin, direction 
+    intersects = @ray.intersectObject @world.terrain.mesh
+    if intersects.length > 0
+      intersect = intersects[0]
+      face = intersect.face
+      attrs = intersect.object.geometry.attributes
+      pos = attrs.position
+      nor = attrs.normal
+      #drawcalls = intersect.object.geometry.drawcalls
+      #console.log drawcalls[0].count
+      #fi = intersect.faceIndex
+      #fi = fi - if fi % 6 then 3 else 0
+      #console.log fi
+      
+      v1 = face.a * 3  
+      if @input.keys['q']
+        {x, y, z} = @world.terrain.getCell pos.array[v1], pos.array[v1+1], pos.array[v1+2]
+        @world.terrain.removeBlock x, y, z
+      else if @input.keys['e']
+        nx = nor.array[v1]
+        ny = nor.array[v1+1]
+        nz = nor.array[v1+2]
+        console.log "#{nx} #{ny} #{nz}"
+
+
+
+  action: (delta)->
     eps = 0.001
+    gravityUpdate = false
 
     @velocity.x -= @velocity.x * 3.0 * delta
     @velocity.z -= @velocity.z * 3.0 * delta
@@ -73,8 +111,14 @@ class Player extends THREE.Object3D
     @velocity.z = 0 if Math.abs(@velocity.z) < eps
 
     if @gravity
-      @velocity.y -= 9.8 * 2.7 * delta
+      if -@velocity.y * delta < 0.5
+        @velocity.y -= 9.8 * 2.7 * delta
 
+    for axis in ['x', 'y', 'z'] 
+      if Math.abs(@velocity[axis]) * delta > 0.7
+        @velocity[axis] = 0.8 * (if @velocity[axis] < 0 then -1 else 1) / delta
+
+    
     if @input.keys["shift"]
       @sneak = true if @canJump
     else
@@ -113,7 +157,9 @@ class Player extends THREE.Object3D
     if gravityUpdate
       @gravity = true
       @canJump = false
-    
+
+  hitCheck: (delta)->
+    eps = 0.001
     prev = @position.clone()
     
     @translateX @velocity.x * delta
@@ -163,5 +209,12 @@ class Player extends THREE.Object3D
               @canDoubleJump = false
               @doubleJumpFlag = false
               @gravity = false
+
+  update: (delta)->
+    @pick() if @pickFlag
+    @action delta
+    @hitCheck delta
+    
+    
         
 module.exports = Player
