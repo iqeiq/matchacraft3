@@ -22,7 +22,7 @@ class MainScene extends Scene
     @controls = new THREE.PointerLockControls @camera
     @scene.add @controls.getObject()
     
-    @world = new World @renderer, @scene, @input, @camera, 8
+    @world = new World @renderer, @scene, @input, @camera, 64
     @world.syncCamera @controls
     
     @input.onMouseDown THREE.MOUSE.LEFT, =>

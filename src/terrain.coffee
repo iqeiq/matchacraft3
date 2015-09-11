@@ -77,25 +77,27 @@ class Terrain
     for fi in [0...6]
       face = @getFaceIndex index, fi
       continue if face is -1
+      @cellFace[index * 6 + fi] = -1
       @faceNum--
       tail = @faceNum * 6
+      #console.log "[remove] #{face} / #{x} #{y} #{z}"
       if face is tail
-        console.log "last face!!"
+        #console.log "last face!!"
         continue
-      console.log "[remove] #{face}"
       for i in [0, 1, 2, 5]
         dest = ind.array[face + i] * 3
         src = ind.array[tail + i] * 3
         # console.log "#{dest} <- #{src} / #{tail}"
+        
         flag = true
-        ranges.forEach (v, i)->
-          if v[0] <= dest <= v[0] + v[1]
-            ranges[i][1] += 3 if v[0] + v[1] is dest
-            flag = false
-          else if dest <= v[0] <= dest + 3
-            ranges[i][0] = dest
-            ranges[i][1] += 3 if v[0] isnt dest
-            flag = false
+        _.forEach ranges, (v, i)->
+          return true if v[0] + v[1] < dest
+          return true if dest + 3 < v[0]
+          rmin = Math.min v[0], dest
+          rmax = Math.max v[0] + v[1], dest + 3
+          ranges[i][0] = rmin
+          ranges[i][1] = rmax - rmin
+          return flag = false
         if flag
           ranges.push [dest, 3]
         
@@ -112,10 +114,8 @@ class Terrain
           srci = 6 * @getIndex2 srcpos[0], srcpos[1], srcpos[2]
           srcf = @getFaceFromNormal srcnor[0], srcnor[1], srcnor[2]
           @cellFace[srci + srcf] = face
-          console.log "[move] #{tail}"
+          #console.log "[move] #{tail}"
         
-    for i in [0...6]
-      @cellFace[index * 6 + i] = -1
     
     # add face
     dir = [[0,1,0], [-1,0,0], [1,0,0], [0,0,-1], [0,0,1], [0,-1,0]]
@@ -142,7 +142,7 @@ class Terrain
       type = @getType x + d[0], y + d[1], z + d[2]
       continue if type is 0
       face = @getInvFaceFromNormal d[0], d[1], d[2]
-      console.log "[add] #{taili} face: #{face} / d: " + d
+      #console.log "[add] #{taili} face: #{face} / #{[x + d[0], y + d[1], z + d[2]]}"
 
       c = @getColor(type)[face]
       desti = @getIndex x + d[0], y + d[1], z + d[2]
@@ -178,12 +178,22 @@ class Terrain
       @faceNum++
 
     if updateCount > 0
-      ranges.push [updateMin, updateCount]
+      flag = true
+      _.forEach ranges, (v, i)->
+        return true if v[0] + v[1] < updateMin
+        return true if updateMin + updateCount < v[0]
+        rmin = Math.min v[0], updateMin
+        rmax = Math.max v[0] + v[1], updateMin + updateCount
+        ranges[i][0] = rmin
+        ranges[i][1] = rmax - rmin
+        return flag = false
+      if flag
+        ranges.push [updateMin, updateCount]
 
     if updateCount2 > 0
       @updateGeometry 'index', [[updateMin2, updateCount2]]
     
-    console.log "range: " + ranges
+    #console.log "range: " + ranges
     if ranges.length > 0
       @updateGeometry 'position', ranges
       @updateGeometry 'color', ranges
@@ -196,7 +206,12 @@ class Terrain
     return index < -1
     @cell[index] = type
 
-
+    # remove face
+    
+    
+    
+    # add face
+    
 
   updateGeometry: (key, ranges)->
     _gl = @world.renderer.context
