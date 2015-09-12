@@ -70,7 +70,7 @@ class Player extends THREE.Object3D
       true
 
   pick: ->
-    origin = @position.clone().add new THREE.Vector3(0, @height - 0.6, 0)
+    origin = @position.clone().add new THREE.Vector3(0, @height - 0.75, 0)
     mouse =  new THREE.Vector3 0, 0, 1
     mouse.unproject @world.camera
     direction = mouse.sub(origin).normalize()
@@ -82,22 +82,22 @@ class Player extends THREE.Object3D
       attrs = intersect.object.geometry.attributes
       pos = attrs.position
       nor = attrs.normal
-      #drawcalls = intersect.object.geometry.drawcalls
-      #console.log drawcalls[0].count
       #fi = intersect.faceIndex
       #fi = fi - if fi % 6 then 3 else 0
       #console.log fi
       
       v1 = face.a * 3  
+      {x, y, z} = @world.terrain.getCell pos.array[v1], pos.array[v1+1], pos.array[v1+2]
       if @input.keys['q']
-        {x, y, z} = @world.terrain.getCell pos.array[v1], pos.array[v1+1], pos.array[v1+2]
         @world.terrain.removeBlock x, y, z
       else if @input.keys['e']
         nx = nor.array[v1]
         ny = nor.array[v1+1]
         nz = nor.array[v1+2]
-        console.log "#{nx} #{ny} #{nz}"
 
+        p = @getCell()
+        unless p.x is x + nx and p.z is z + nz and (p.y is y + ny or p.y + 1 is y + ny )
+          @world.terrain.addBlock x + nx, y + ny, z + nz, 2
 
 
   action: (delta)->
@@ -116,7 +116,7 @@ class Player extends THREE.Object3D
 
     for axis in ['x', 'y', 'z'] 
       if Math.abs(@velocity[axis]) * delta > 0.7
-        @velocity[axis] = 0.8 * (if @velocity[axis] < 0 then -1 else 1) / delta
+        @velocity[axis] = 0.7 * (if @velocity[axis] < 0 then -1 else 1) / delta
 
     
     if @input.keys["shift"]
@@ -141,7 +141,7 @@ class Player extends THREE.Object3D
     if @input.keys["space"] and not @sneak
       if @gravity
         if @canDoubleJump
-          @velocity.y = 17.0
+          @velocity.y = 14.0
           @velocity.x *= 3.0
           @velocity.z *= 3.0
           @canDoubleJump = false

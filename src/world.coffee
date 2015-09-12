@@ -23,7 +23,7 @@ class World
     @player.update delta
 
   syncCamera: (controls)->
-    pos = @player.position.clone().add new THREE.Vector3(0, @player.height - 0.6, 0)
+    pos = @player.position.clone().add new THREE.Vector3(0, @player.height - 0.75, 0)
     controls.getObject().position.copy pos 
     @player.rotation.copy controls.getObject().rotation
 
