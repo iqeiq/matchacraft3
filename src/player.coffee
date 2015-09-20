@@ -75,7 +75,7 @@ class Player extends THREE.Object3D
     mouse.unproject @world.camera
     direction = mouse.sub(origin).normalize()
     @ray.set origin, direction 
-    intersects = @ray.intersectObject @world.terrain.mesh
+    intersects = @ray.intersectObjects @world.terrain.getMeshes()
     if intersects.length > 0
       intersect = intersects[0]
       face = intersect.face
@@ -87,7 +87,7 @@ class Player extends THREE.Object3D
       #console.log fi
       
       v1 = face.a * 3  
-      {x, y, z} = @world.terrain.getCell pos.array[v1], pos.array[v1+1], pos.array[v1+2]
+      {x, y, z} = @world.terrain.gridify pos.array[v1], pos.array[v1+1], pos.array[v1+2]
       if @input.keys['q']
         @world.terrain.removeBlock x, y, z
       else if @input.keys['e']

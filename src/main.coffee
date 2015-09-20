@@ -16,6 +16,18 @@ class Main
     @renderer.sortObjects = true
     $('#world').append @renderer.domElement
 
+    THREE.gl = @renderer.context
+    THREE.updateGeometry = (geometry, key, ranges)->
+      attr = geometry.attributes[key]
+      bufferType = if key is 'index' then THREE.gl.ELEMENT_ARRAY_BUFFER else THREE.gl.ARRAY_BUFFER
+      THREE.gl.bindBuffer bufferType, attr.buffer
+      for range in ranges
+        offset = range[0]
+        count = range[1]
+        data = attr.array.subarray offset, offset + count
+        THREE.gl.bufferSubData bufferType, offset * attr.array.BYTES_PER_ELEMENT, data
+        data = null
+
     @currentScene = undefined
     transit = (s)=>
       @currentScene.input.offAll()

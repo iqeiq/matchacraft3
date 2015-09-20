@@ -2,10 +2,11 @@ Terrain = require './terrain'
 Player = require './player'
 
 class World
-  constructor: (@renderer, @scene, @input, @camera, @size)->
-    worldHeight = 128
-    @terrain = new Terrain @, @size, 0, worldHeight, 599774
-    @scene.add @terrain.mesh
+  constructor: (@scene, @input, @camera, @size)->
+    worldHeight = 100
+    @terrain = new Terrain @size, 0, worldHeight
+    for c in @terrain.chunk 
+      @scene.add c.mesh
 
     @light = new THREE.DirectionalLight 0xffffff, 0.6
     @light.position.set(0.5, 0.7, 0.3).normalize()
@@ -16,7 +17,7 @@ class World
     
     #@scene.add new THREE.AmbientLight 0x404040
 
-    @player = new Player @, @size / 2, @terrain.getHeight(@size / 2, @size / 2) + 128, @size / 2
+    @player = new Player @, @size / 2, @terrain.getHeight(@size / 2, @size / 2) + worldHeight, @size / 2
 
 
   update: (delta)->
